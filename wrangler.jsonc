@@ -12,9 +12,7 @@
     "TENANT_ID": "your-tenant-id-from-control-plane",
     "CENTRAL_API_BASE_URL": "https://email.skydreamcity.online",
     "PART1_TO_PART2_HMAC_SECRET": "replace-with-part1-to-part2-secret",
-    "PART1_TO_PART2_HMAC_SECRET_NEXT": "",
     "PART2_TO_PART1_HMAC_SECRET": "replace-with-part2-to-part1-secret",
-    "PART2_TO_PART1_HMAC_SECRET_NEXT": "",
     "ALLOWED_FROM_DOMAIN": "yourdomain.com"
   }
 }
