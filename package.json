@@ -1,0 +1,22 @@
+{
+  "name": "skydreamemail-part1-worker",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev --local --port 9310",
+    "dev:92xx": "wrangler dev --local --port 9220 --inspector-port 9231",
+    "dev:mailbox": "bun run scripts/dev-mailbox.ts",
+    "gen:connection-json": "bun run scripts/generate-connection-json.ts",
+    "deploy": "wrangler deploy",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "postal-mime": "^2.7.4"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20260506.1",
+    "typescript": "^5.9.3",
+    "wrangler": "^4.88.0"
+  }
+}

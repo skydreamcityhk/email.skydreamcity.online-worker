@@ -1,0 +1,9 @@
+{
+  "accountId": "test-account-123456",
+  "workerUrl": "http://127.0.0.1:9220",
+  "apiToken": "local-dev-token-please-change",
+  "zoneId": "test-zone-999999",
+  "tenantId": "tenant-demo-001",
+  "centralApiBaseUrl": "http://127.0.0.1:9200",
+  "generatedAt": "2026-05-26T00:00:00.000Z"
+}

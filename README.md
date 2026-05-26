@@ -1,1 +1,141 @@
-# email.skydreamcity.online-worker
+# SkyDreamCity Email Worker (Part 1)
+
+This is the public Part 1 worker project for external teams.
+It is used by the admin onboarding flow to connect a customer's Cloudflare worker to the main dashboard.
+
+## Responsibilities
+
+- Receive inbound email via Cloudflare Email Worker trigger.
+- Expose authenticated `POST /api/send` for outbound sends.
+- Forward inbound and send-result events to Part 2 over signed `fetch` calls.
+
+## Endpoints
+
+- `GET /health`
+  - Called by hosted Part 2 setup checks.
+  - Confirms the worker is installed and reports non-secret tenant/domain configuration.
+- `POST /api/send`
+  - Called by Part 2.
+  - Requires signed headers:
+    - `X-Tenant-Id`
+    - `X-Timestamp`
+    - `X-Signature`
+
+## Signed Request Scheme
+
+- Signature input: `${timestamp}.${rawBody}`
+- Signature algorithm: `HMAC_SHA256(secret, input)` (hex encoded)
+- Freshness window: 5 minutes
+
+## Environment Variables
+
+- `TENANT_ID`
+- `CENTRAL_API_BASE_URL`
+- `PART1_TO_PART2_HMAC_SECRET`
+- `PART1_TO_PART2_HMAC_SECRET_NEXT` (optional, for key rotation)
+- `PART2_TO_PART1_HMAC_SECRET`
+- `PART2_TO_PART1_HMAC_SECRET_NEXT` (optional, for key rotation)
+- `ALLOWED_FROM_DOMAIN`
+
+## Cloudflare Bindings
+
+- `SEND_EMAIL` binding is required.
+
+## Local Development
+
+```bash
+bun install
+bun run dev
+```
+
+Default local port is `9310`.
+
+For file-based local testing without real Cloudflare delivery:
+
+```bash
+bun run dev:mailbox all
+```
+
+This writes simulated inbound/outbound email files and signed callback traces to `.dev-mailbox/`.
+
+## Generate Connection JSON (for Admin Register)
+
+After the worker is deployed in a user's Cloudflare account, generate a connection JSON file and upload it on the dashboard home page (`Register` stepper).
+
+Required fields:
+
+- `accountId`
+- `workerUrl`
+- `apiToken`
+
+Optional fields:
+
+- `zoneId`
+- `tenantId`
+- `centralApiBaseUrl`
+
+### Command
+
+```bash
+bun run gen:connection-json -- \
+  --account-id <cloudflare_account_id> \
+  --worker-url https://<worker-subdomain>.workers.dev \
+  --api-token <cloudflare_api_token> \
+  --zone-id <cloudflare_zone_id_optional> \
+  --tenant-id tenant-demo-001 \
+  --central-api-base-url https://email.skydreamcity.online \
+  --out testing/worker-connection.json
+```
+
+If you prefer, you can set environment variables instead of flags:
+
+- `CF_ACCOUNT_ID`
+- `WORKER_URL`
+- `CF_API_TOKEN`
+- `CF_ZONE_ID`
+- `TENANT_ID`
+- `CENTRAL_API_BASE_URL`
+
+Default output path is:
+
+```text
+testing/worker-connection.local.json
+```
+
+## Local Testing JSON
+
+A ready-made local test file is included:
+
+```text
+testing/worker-connection.local.json
+```
+
+## Deploy
+
+1. Set secrets/vars in your Cloudflare Worker project.
+2. Configure domain + email routing in your Cloudflare account.
+3. Deploy:
+
+```bash
+bun run deploy
+```
+
+## Part 2 Integration Paths (current)
+
+- Inbound callback: `POST {CENTRAL_API_BASE_URL}/api/ingest/inbound`
+- Send result callback: `POST {CENTRAL_API_BASE_URL}/api/ingest/send-result`
+
+## Key Rotation (Dual Secret)
+
+Part 1 now supports dual secret verification for zero-downtime rotation:
+
+- For incoming Part2 -> Part1 signatures: accepts `PART2_TO_PART1_HMAC_SECRET` and `_NEXT`.
+- For outgoing Part1 -> Part2 signatures: signs with primary (`PART1_TO_PART2_HMAC_SECRET`).
+
+Rotation procedure:
+
+1. Start rotation from the hosted Part 2 `/tenant-setup` page.
+2. Copy the refreshed Part 1 env into the customer Cloudflare worker.
+3. Deploy Part 1 and verify traffic in the hosted setup page.
+4. Promote the pending keys in hosted Part 2.
+5. Copy the promoted Part 1 env into Cloudflare and redeploy Part 1.

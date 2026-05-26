@@ -1,0 +1,20 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "skydreamemail-part1-worker",
+  "main": "src/worker.ts",
+  "compatibility_date": "2024-11-01",
+  "send_email": [
+    {
+      "name": "SEND_EMAIL"
+    }
+  ],
+  "vars": {
+    "TENANT_ID": "tenant-demo-001",
+    "CENTRAL_API_BASE_URL": "http://127.0.0.1:9300",
+    "PART1_TO_PART2_HMAC_SECRET": "dev-part1-to-part2-secret",
+    "PART1_TO_PART2_HMAC_SECRET_NEXT": "",
+    "PART2_TO_PART1_HMAC_SECRET": "dev-part2-to-part1-secret",
+    "PART2_TO_PART1_HMAC_SECRET_NEXT": "",
+    "ALLOWED_FROM_DOMAIN": "example.com"
+  }
+}
